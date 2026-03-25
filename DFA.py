@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from tqdm import tqdm
 import time
-
+from utils.process_data import process_data
 
 class DFA_MLP(nn.Module):
 
@@ -38,32 +38,33 @@ def main():
     root_path = "/speech/malar/vighnesh/EEG/FeaturesExtracted/SpecDirOneFrame"
     folder = Path(root_path)
 
-    X = []
-    Y = []
+    # X = []
+    # Y = []
 
-    for file in tqdm(folder.iterdir(), desc="Loading files"):
+    # for file in tqdm(folder.iterdir(), desc="Loading files"):
 
-        filename = file.stem
+    #     filename = file.stem
 
-        if filename == "newSourceFileList":
-            continue
+    #     if filename == "newSourceFileList":
+    #         continue
 
-        audio_person, utterance_index, syllable_channel = filename.split("_")
-        syllable, channel = syllable_channel.split("col")
+    #     audio_person, utterance_index, syllable_channel = filename.split("_")
+    #     syllable, channel = syllable_channel.split("col")
 
-        with open(file) as f:
-            for line in f:
+    #     with open(file) as f:
+    #         for line in f:
 
-                arr = np.fromstring(line, sep=" ")
+    #             arr = np.fromstring(line, sep=" ")
 
-                if arr.size == 0:
-                    continue
+    #             if arr.size == 0:
+    #                 continue
 
-                X.append(arr)
-                Y.append(syllable)
+    #             X.append(arr)
+    #             Y.append(syllable)
 
-    X = np.array(X)
-    Y = np.array(Y)
+    # X = np.array(X)
+    # Y = np.array(Y)
+    X,Y = process_data(root_path)
 
     encoder = LabelEncoder()
     Y = encoder.fit_transform(Y)
