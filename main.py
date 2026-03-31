@@ -7,139 +7,146 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 from tqdm import tqdm
 import time
 from utils.process_data import process_data
-
-class MLP(nn.Module):
-
-    def __init__(self, input_dim, num_classes):
-        super().__init__()
-
-        self.net = nn.Sequential(
-            nn.Linear(input_dim, 256),
-            nn.ReLU(),
-
-            nn.Linear(256, 256),
-            nn.ReLU(),
-
-            nn.Linear(256, num_classes)
-        )
-
-    def forward(self, x):
-        return self.net(x)
-
-
+from train.BP import train_MLP
+from train.DFA import train_DFA
+from train.RFA import train_RFA
 
 def main():
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print("Using device:", device)
+    train_MLP()
+    train_DFA()
+    train_RFA()
 
-    root_path = "/speech/malar/vighnesh/EEG/FeaturesExtracted/SpecDirOneFrame"
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # print("Using device:", device)
 
-    X,Y = process_data(root_path)
+    # root_path = "/speech/malar/vighnesh/EEG/FeaturesExtracted/SpecDirOneFrame"
 
-    encoder = LabelEncoder()
-    Y = encoder.fit_transform(Y)
-    print(np.unique(Y))
+    # X,Y,X_test,Y_test = process_data(root_path)
 
-    scaler = StandardScaler()
-    X = scaler.fit_transform(X)
+    # encoder = LabelEncoder()
+    # Y = encoder.fit_transform(Y)          # fit + transform on train
+    # Y_test = encoder.transform(Y_test)    # transform only — uses the same mapping
+    
+    # print(np.unique(Y))
+    # print(np.unique(Y_test))
+    # print(np.unique(Y) == np.unique(Y_test))
 
-
-    X_train, X_temp, Y_train, Y_temp = train_test_split(
-        X, Y, test_size=0.3, random_state=41
-    )
-
-    X_val, X_test, Y_val, Y_test = train_test_split(
-        X_temp, Y_temp, test_size=0.5, random_state=41
-    )
-
-    X_train = torch.tensor(X_train, dtype=torch.float32).to(device)
-    X_val = torch.tensor(X_val, dtype=torch.float32).to(device)
-    X_test = torch.tensor(X_test, dtype=torch.float32).to(device)
-
-    Y_train = torch.tensor(Y_train, dtype=torch.long).to(device)
-    Y_val = torch.tensor(Y_val, dtype=torch.long).to(device)
-    Y_test = torch.tensor(Y_test, dtype=torch.long).to(device)
-
-    input_dim = X_train.shape[1]
-    num_classes = len(np.unique(Y))
-
-    model = MLP(input_dim, num_classes).to(device)
-
-    criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-
-    epochs = 100
-    batch_size = 64
+    # scaler = StandardScaler()
+    # X = scaler.fit_transform(X)           # fit + transform on train
+    # X_test = scaler.transform(X_test)     # transform only — uses train statistics
 
 
-    time_start = time.time()
+    # # X_train, X_temp, Y_train, Y_temp = train_test_split(
+    # #     X, Y, test_size=0.3, random_state=41
+    # # )
 
-    for epoch in tqdm(range(epochs), desc="Training"):
+    # # X_val, X_test, Y_val, Y_test = train_test_split(
+    # #     X_temp, Y_temp, test_size=0.5, random_state=41
+    # # )
 
-        model.train()
+    # # X_train = torch.tensor(X_train, dtype=torch.float32).to(device)
+    # # X_val = torch.tensor(X_val, dtype=torch.float32).to(device)
+    # # X_test = torch.tensor(X_test, dtype=torch.float32).to(device)
 
-        perm = torch.randperm(X_train.size(0))
+    # # Y_train = torch.tensor(Y_train, dtype=torch.long).to(device)
+    # # Y_val = torch.tensor(Y_val, dtype=torch.long).to(device)
+    # # Y_test = torch.tensor(Y_test, dtype=torch.long).to(device)
 
-        correct = 0
-        total = 0
+    # X_train, X_val, Y_train, Y_val = train_test_split(
+    #     X,Y, test_size = 0.2, random_state = 41
+    # )
 
-        for i in range(0, X_train.size(0), batch_size):
+    # print(type(Y_val[0]))
 
-            idx = perm[i:i+batch_size]
+    # X_train = torch.tensor(X_train,dtype = torch.float32).to(device)
+    # X_val = torch.tensor(X_val,dtype = torch.float32).to(device)
 
-            batch_x = X_train[idx]
-            batch_y = Y_train[idx]
+    # Y_train = torch.tensor(Y_train,dtype = torch.long).to(device)
+    # Y_val = torch.tensor(Y_val, dtype = torch.long).to(device)
 
-            outputs = model(batch_x)
+    # X_test = torch.tensor(X_test,dtype = torch.float32).to(device)
+    # Y_test = torch.tensor(Y_test,dtype = torch.long).to(device)
 
-            loss = criterion(outputs, batch_y)
+    # input_dim = X_train.shape[1]
+    # num_classes = len(np.unique(Y))
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+    # model = MLP(input_dim, num_classes).to(device)
 
-            preds = torch.argmax(outputs, dim=1)
+    # criterion = nn.CrossEntropyLoss()
+    # optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
-            correct += (preds == batch_y).sum().item()
-            total += batch_y.size(0)
-
-        train_acc = correct / total
+    # epochs = 50
+    # batch_size = 64
 
 
-        model.eval()
+    # time_start = time.time()
 
-        with torch.no_grad():
+    # for epoch in tqdm(range(epochs), desc="Training"):
 
-            outputs = model(X_val)
+    #     model.train()
 
-            preds = torch.argmax(outputs, dim=1)
+    #     perm = torch.randperm(X_train.size(0))
 
-            val_correct = (preds == Y_val).sum().item()
-            val_total = Y_val.size(0)
+    #     correct = 0
+    #     total = 0
 
-            val_acc = val_correct / val_total
+    #     for i in range(0, X_train.size(0), batch_size):
 
-        tqdm.write(
-            f"Epoch {epoch+1}: Train Acc = {train_acc:.4f} | Val Acc = {val_acc:.4f}"
-        )
+    #         idx = perm[i:i+batch_size]
 
-    time_end = time.time()
-    model.eval()
+    #         batch_x = X_train[idx]
+    #         batch_y = Y_train[idx]
 
-    with torch.no_grad():
+    #         outputs = model(batch_x)
 
-        outputs = model(X_test)
+    #         loss = criterion(outputs, batch_y)
 
-        preds = torch.argmax(outputs, dim=1)
+    #         optimizer.zero_grad()
+    #         loss.backward()
+    #         optimizer.step()
 
-        test_correct = (preds == Y_test).sum().item()
-        test_total = Y_test.size(0)
+    #         preds = torch.argmax(outputs, dim=1)
 
-        test_acc = test_correct / test_total
+    #         correct += (preds == batch_y).sum().item()
+    #         total += batch_y.size(0)
 
-    print("Final Test Accuracy:", test_acc)
-    print("Time taken: ", time_end - time_start)
+    #     train_acc = correct / total
+
+
+    #     model.eval()
+
+    #     with torch.no_grad():
+
+    #         outputs = model(X_val)
+
+    #         preds = torch.argmax(outputs, dim=1)
+
+    #         val_correct = (preds == Y_val).sum().item()
+    #         val_total = Y_val.size(0)
+
+    #         val_acc = val_correct / val_total
+
+    #     tqdm.write(
+    #         f"Epoch {epoch+1}: Train Acc = {train_acc:.4f} | Val Acc = {val_acc:.4f}"
+    #     )
+
+    # time_end = time.time()
+    # model.eval()
+
+    # with torch.no_grad():
+
+    #     outputs = model(X_test)
+
+    #     preds = torch.argmax(outputs, dim=1)
+
+    #     test_correct = (preds == Y_test).sum().item()
+    #     test_total = Y_test.size(0)
+
+    #     test_acc = test_correct / test_total
+
+    # print("Final Test Accuracy:", test_acc)
+    # print("Time taken: ", time_end - time_start)
 
 
 if __name__ == "__main__":
