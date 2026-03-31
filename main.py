@@ -13,9 +13,10 @@ from train.RFA import train_RFA
 
 def main():
 
-    train_MLP()
-    train_DFA()
-    train_RFA()
+    epochs = 50
+    train_MLP(epochs)
+    # train_DFA(epochs)
+    # train_RFA(epochs)
 
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # print("Using device:", device)
